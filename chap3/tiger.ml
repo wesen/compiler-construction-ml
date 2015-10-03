@@ -8,8 +8,7 @@ and call_exp = { func: symbol;
                  args: exp list }
 and op_exp = { left: exp;
                oper: oper;
-               right: exp;
-               pos: pos }
+               right: exp }
 and record_exp = { fields: (symbol * exp * pos) list;
                    typ: symbol }
 and assign_exp = { var: var;

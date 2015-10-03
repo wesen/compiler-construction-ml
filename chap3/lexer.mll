@@ -57,7 +57,7 @@ rule read =
        | ":=" { ASSIGN }
        | ',' { COMMA }
        | ':' { COLON }
-       | '-' { EQUAL }
+       | '=' { EQUAL }
        | '.' { DOT }
        | '[' { LEFT_BRACK }
        | ']' { RIGHT_BRACK }

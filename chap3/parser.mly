@@ -63,6 +63,7 @@
 
 %token PRINT
 
+
 %start <Tiger.exp option> prog
 %%
 
@@ -73,8 +74,38 @@ prog:
   ;
 
 expr:
-  | s = SYMBOL { VarExp (SimpleVar s, makepos $startpos $endpos) }
+  | s = STRING { StringExp (s, makepos $startpos $endpos) }
   | i = INT { IntExp (i, makepos $startpos $endpos) }
+  | NIL { NilExp (makepos $startpos $endpos) }
+  | v = lvalue { VarExp (v, makepos $startpos $endpos) }
+  | MINUS; e = expr {
+                   OpExp ({ left  = IntExp (0, makepos $startpos $startpos);
+                            oper  = MinusOp;
+                            right = e; },
+                          makepos $startpos $endpos) }
+  | e1 = expr; o = op; e2 = expr { OpExp ({ left  = e1;
+                                            oper  = o;
+                                            right = e2 },
+                                          makepos $startpos $endpos) }
+  ;
+
+%inline op:
+  | DIFF { NeqOp }
+  | EQUAL { EqOp }
+  | LE { LeOp }
+  | GE { GeOp }
+  | LT { LtOp }
+  | GT { GtOp }
+  | PLUS { PlusOp }
+  | MINUS { MinusOp }
+  | STAR { TimesOp }
+  | DIV { DivideOp }
+  ;
+
+lvalue:
+  | s = SYMBOL { SimpleVar s }
+  | l = lvalue; DOT; s = SYMBOL { FieldVar (l, s) }
+  | l = lvalue; LEFT_BRACK; e = expr; RIGHT_BRACK { SubscriptVar (l, e) }
   ;
 
 exprs:
