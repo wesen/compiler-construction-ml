@@ -34,11 +34,19 @@ let loop filename () =
 
 let parse_string s =
   let lexbuf = Lexing.from_string s in
-  Chap3.parse_with_error lexbuf
+  parse_with_error lexbuf
+
+let lex_one s =
+  let lexbuf = Lexing.from_string s in
+  (Lexer.read lexbuf, Lexer.read lexbuf)
 
 let lex_string s =
   let lexbuf = Lexing.from_string s in
-  Lexer.read lexbuf
+  let rec lex' lexbuf =
+    match Lexer.read lexbuf with
+    | Parser.EOF -> []
+    | _ as s -> s :: (lex' lexbuf)
+  in lex' lexbuf
 
 (*
 let () =

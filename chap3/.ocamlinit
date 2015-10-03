@@ -1,0 +1,8 @@
+#use "topfind"
+#camlp4o
+#thread
+#require "core.top"
+#require "core.syntax"
+#directory "/Users/manuel/code/wesen/compiler-construction-ml/chap3/_build";;
+#load_rec "chap3.cmo";;
+open Chap3;;
