@@ -1,0 +1,9 @@
+S .
+B _build
+PKG core
+PKG core_kernel
+Pkg async
+PKG core_extended
+PKG lwt lwt.unix
+PKG cohttp
+EXT nonrec

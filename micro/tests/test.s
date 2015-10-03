@@ -1,0 +1,1 @@
+BEGIN read(aasda); END                     

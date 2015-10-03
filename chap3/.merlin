@@ -1,0 +1,12 @@
+S .
+B _build
+PKG core
+PKG core_kernel
+Pkg async
+PKG core_extended
+PKG lwt lwt.unix
+PKG cohttp
+PKG llvm
+PKG llvm_analysis
+EXT nonrec
+EXT camlp4of
