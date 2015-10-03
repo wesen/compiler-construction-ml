@@ -19,7 +19,6 @@ let parse_with_error lexbuf =
 let rec parse_and_print lexbuf =
   match parse_with_error lexbuf with
   | Some stm ->
-     printf "%a\n" Tiger.output_stm stm;
      parse_and_print lexbuf
   | None -> ()
 

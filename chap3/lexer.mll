@@ -12,7 +12,6 @@ let next_line lexbuf =
     }
 
 let decimal_char s = char_of_int (int_of_string (String.sub s 1 ((String.length s) - 1)))
-
 }
 
 let int = '-'? ['0'-'9'] ['0'-'9']*
@@ -31,8 +30,6 @@ rule read =
        | newline { next_line lexbuf; read lexbuf }
        | int { INT (int_of_string (Lexing.lexeme lexbuf)) }
        | '"' { read_string (Buffer.create 17) lexbuf }
-
-       | "print" { PRINT }
 
        | "type" { TYPE }
        | "var" { VAR }

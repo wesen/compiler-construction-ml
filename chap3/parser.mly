@@ -1,3 +1,9 @@
+%{
+    open Tiger
+
+    let makepos start' end' = (start'.Lexing.pos_cnum, end'.Lexing.pos_cnum)
+%}
+
 %token <int> INT
 %token <string> SYMBOL
 
@@ -57,37 +63,24 @@
 
 %token PRINT
 
-%start <Tiger.stm option> prog
+%start <Tiger.exp option> prog
 %%
 
 
 prog:
   | EOF { None }
-  | s = stms; EOF { Some s }
+  | e = exprs; EOF { Some e }
   ;
 
-stm:
-  | s = SYMBOL; ASSIGN; e = exp { Tiger.AssignStm(s, e) }
-  | PRINT; LEFT_PAREN; RIGHT_PAREN { Tiger.PrintStm([]) }
+expr:
+  | s = SYMBOL { VarExp (SimpleVar s, makepos $startpos $endpos) }
+  | i = INT { IntExp (i, makepos $startpos $endpos) }
   ;
 
-stms:
-  | ss = stms; SEMICOLON; s1 = stm { Tiger.CompoundStm(ss, s1) }
-  | s1 = stm { s1 }
+exprs:
+  | e1 = expr; SEMICOLON; e2 = exprs { match e2 with
+                                       | SeqExp es -> SeqExp (e1::es)
+                                       | _ -> SeqExp [e1; e2]
+                                    }
+  | e = expr { e }
     ;
-
-exp :
-  | s = SYMBOL { Tiger.IdExp(s) }
-  | i = INT { Tiger.NumExp(i) }
-  | e1 = exp; b = binop; e2 = exp { Tiger.OpExp(e1, b, e2) }
-  | s1 = stm; SEMICOLON; e = exp { Tiger.EseqExp(s1, e) }
-    ;
-
-binop :
-  | PLUS { Tiger.Plus }
-  | MINUS { Tiger.Minus }
-  | STAR { Tiger.Times }
-  | DIV { Tiger.Div }
-  ;
-
-exps: es = separated_list(COMMA, exp) { es } ;
