@@ -33,7 +33,8 @@ rule read =
 
        | "type" { TYPE }
        | "var" { VAR }
-       | "array of" { ARRAY_OF }
+       | "array" { ARRAY }
+       | "of" { OF }
        | "function" { FUNCTION }
        | "let" { LET }
        | "in" { IN }
@@ -47,6 +48,7 @@ rule read =
        | "do" { DO }
        | "to" { TO }
        | "for" { FOR }
+       | "of" { OF }
 
        | "/*" { ignore(read_comment 0 lexbuf); read lexbuf }
 
@@ -96,6 +98,7 @@ and read_comment level =
   parse
 | "*/" { if level == 0 then () else (read_comment (level - 1) lexbuf) }
 | "/*" { read_comment (level + 1) lexbuf }
+| newline { next_line lexbuf; read_comment level lexbuf }
 | eof { raise (SyntaxError ("Comment is not terminated")) }
 | _ { read_comment level lexbuf }
 

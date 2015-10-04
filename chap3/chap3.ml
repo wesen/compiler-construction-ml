@@ -33,7 +33,9 @@ let loop filename () =
 
 let parse_string s =
   let lexbuf = Lexing.from_string s in
-  parse_with_error lexbuf
+  match parse_with_error lexbuf with
+  | Some v -> v
+  | None -> raise (Lexer.SyntaxError "syntax error")
 
 let lex_one s =
   let lexbuf = Lexing.from_string s in
