@@ -113,14 +113,15 @@ expr:
 
   | LEFT_PAREN; es = exprs; RIGHT_PAREN { es }
 
-  | ty = type_id; LEFT_BRACE;
+  | ty = symbol_with_pos; LEFT_BRACE;
     fields = fields; RIGHT_BRACE {
                              RecordExp ({fields = fields; typ = ty; }, makepos $startpos $endpos)
                        }
-  | ty = type_id; LEFT_BRACK; e1 = expr; RIGHT_BRACK;
+
+  | ty = symbol_with_pos; LEFT_BRACK; e = expr; RIGHT_BRACK;
     OF; e2 = expr {
                  ArrayExp ({array_typ = ty;
-                            size = e1;
+                            size = e;
                             init = e2},
                            makepos $startpos $endpos)
                }
@@ -166,13 +167,13 @@ field:
 decl:
   | VAR; s = SYMBOL; ASSIGN; e = expr { VarDec (s, { var_typ = None; var_init = e }, makepos $startpos $endpos ) }
 
-  | VAR; s = SYMBOL; COLON; ty = type_id;
+  | VAR; s = SYMBOL; COLON; ty = symbol_with_pos;
     ASSIGN; e = expr {
                     VarDec (s, { var_typ = Some ty;
                                  var_init = e; },
                             makepos $startpos $endpos ) }
 
-  | TYPE; id = type_id; EQUAL; ty = typedef { TypeDec (id, ty, makepos $startpos $endpos) }
+  | TYPE; id = symbol_with_pos; EQUAL; ty = typedef { TypeDec (id, ty, makepos $startpos $endpos) }
 
   | FUNCTION; s = SYMBOL; LEFT_PAREN; fs = type_fields; RIGHT_PAREN;
     EQUAL; e = expr{
@@ -181,7 +182,7 @@ decl:
                                      fun_body = e; },
                                 makepos $startpos $endpos) }
   | FUNCTION; s = SYMBOL; LEFT_PAREN; fs = type_fields; RIGHT_PAREN;
-    COLON; ty = type_id;
+    COLON; ty = symbol_with_pos;
     EQUAL; e = expr {
                    FunctionDec (s, { params = fs;
                                      result_typ = Some ty;
@@ -190,9 +191,9 @@ decl:
     ;
 
 typedef:
-  | ty = type_id { NameTy (ty, makepos $startpos $endpos) }
+  | ty = symbol_with_pos { NameTy (ty, makepos $startpos $endpos) }
   | LEFT_BRACE; ts = type_fields; RIGHT_BRACE { RecordTy (ts, makepos $startpos $endpos) }
-  | ARRAY; OF; ty = type_id { ArrayTy (ty, makepos $startpos $endpos)  }
+  | ARRAY; OF; ty = symbol_with_pos { ArrayTy (ty, makepos $startpos $endpos)  }
     ;
 
 type_fields:
@@ -204,17 +205,21 @@ field_name:
   ;
 
 type_field:
-  | s = field_name; COLON; ty_id = type_id { {field_name = s; field_typ = ty_id;} }
+  | s = field_name; COLON; ty_id = symbol_with_pos { {field_name = s; field_typ = ty_id;} }
   ;
 
-    type_id:
+symbol_with_pos:
   | s = SYMBOL { (s, makepos $startpos $endpos) }
   ;
 
-
 lvalue:
-  | s = SYMBOL { SimpleVar s }
   | l = lvalue; DOT; s = SYMBOL { FieldVar (l, s) }
+  | l = symbol_with_pos; DOT; s = SYMBOL { match l with
+                                           | (l, _) -> FieldVar (SimpleVar l, s) }
+  | s = symbol_with_pos; LEFT_BRACK; e = expr; RIGHT_BRACK {
+                                                   match s with
+                                                   | (s, _) -> SubscriptVar (SimpleVar s, e)
+                                                 }
   | l = lvalue; LEFT_BRACK; e = expr; RIGHT_BRACK { SubscriptVar (l, e) }
   ;
 
