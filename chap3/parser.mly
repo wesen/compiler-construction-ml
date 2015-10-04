@@ -86,6 +86,8 @@ expr:
   | i = INT { IntExp (i, makepos $startpos $endpos) }
   | NIL { NilExp (makepos $startpos $endpos) }
   | v = lvalue { VarExp (v, makepos $startpos $endpos) }
+  | l = symbol_with_pos { match l with
+                          | (l, s) -> VarExp (SimpleVar l, s) }
 
   (* shift reduce conflict, averted with %left ASSIGN *)
   | v = lvalue; ASSIGN; e = expr { AssignExp ({var = v; exp = e;}, makepos $startpos $endpos) }
@@ -118,12 +120,14 @@ expr:
                              RecordExp ({fields = fields; typ = ty; }, makepos $startpos $endpos)
                        }
 
-  | ty = symbol_with_pos; LEFT_BRACK; e = expr; RIGHT_BRACK;
+  | be = brack_exp;
     OF; e2 = expr {
-                 ArrayExp ({array_typ = ty;
-                            size = e;
-                            init = e2},
-                           makepos $startpos $endpos)
+                 match be with
+                 | ((s, pos), e) ->
+                    ArrayExp ({array_typ = (s, pos);
+                               size = e;
+                               init = e2},
+                              makepos $startpos $endpos)
                }
 
   (* shift reduce conflict, one averted by %left ELSE *)
@@ -141,6 +145,10 @@ expr:
                                                                                for_body = body; }, makepos $startpos $endpos) }
 
   | LET; decls = nonempty_list(decl); IN; es = exprs; END { LetExp ({decs = decls; let_body = es;}, makepos $startpos $endpos) }
+    ;
+
+brack_exp:
+  | ty = symbol_with_pos; LEFT_BRACK; e1 = expr; RIGHT_BRACK { (ty, e1) }
     ;
 
 fields:
@@ -215,11 +223,10 @@ symbol_with_pos:
 lvalue:
   | l = lvalue; DOT; s = SYMBOL { FieldVar (l, s) }
   | l = symbol_with_pos; DOT; s = SYMBOL { match l with
-                                           | (l, _) -> FieldVar (SimpleVar l, s) }
-  | s = symbol_with_pos; LEFT_BRACK; e = expr; RIGHT_BRACK {
-                                                   match s with
-                                                   | (s, _) -> SubscriptVar (SimpleVar s, e)
-                                                 }
+                                         | (l, _) -> FieldVar (SimpleVar l, s) }
+  | be = brack_exp { match be with
+                     | ((s, _), e) -> SubscriptVar (SimpleVar s, e)
+                   }
   | l = lvalue; LEFT_BRACK; e = expr; RIGHT_BRACK { SubscriptVar (l, e) }
   ;
 

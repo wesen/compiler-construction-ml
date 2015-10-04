@@ -31,9 +31,12 @@ let loop filename () =
   In_channel.close inx
    *)
 
-let parse_file filename =
+let lexbuf_from_file filename =
   let inx = In_channel.create filename in
-  let lexbuf = Lexing.from_channel inx in
+  Lexing.from_channel inx
+
+let parse_file filename =
+  let lexbuf = lexbuf_from_file filename in
   lexbuf.lex_curr_p <- { lexbuf.lex_curr_p with pos_fname = filename };
   match parse_with_error lexbuf with
   | Some v -> v
@@ -49,13 +52,20 @@ let lex_one s =
   let lexbuf = Lexing.from_string s in
   (Lexer.read lexbuf, Lexer.read lexbuf)
 
-let lex_string s =
-  let lexbuf = Lexing.from_string s in
+let lex_all lexbuf =
   let rec lex' lexbuf =
     match Lexer.read lexbuf with
     | Parser.EOF -> []
     | _ as s -> s :: (lex' lexbuf)
   in lex' lexbuf
+
+let lex_string s =
+  let lexbuf = Lexing.from_string s in
+  lex_all lexbuf
+
+let lex_file filename =
+  let lexbuf = lexbuf_from_file filename in
+  lex_all lexbuf
 
 (*
 let () =
