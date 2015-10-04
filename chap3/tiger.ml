@@ -113,14 +113,28 @@ let rec exp_to_string =
 and fields_to_string fields =
   String.concat ", " (List.map (fun (s, e, _) -> sprintf "%s = %s" s (exp_to_string e)) fields)
 
+and  fun_fields_to_string fs =
+  String.concat ", " (List.map (fun {field_name = (n,_); field_typ=(ty,_)} -> sprintf "%s %s" ty n) fs)
 and decl_to_string =
+
   function
   | FunctionDec (s, {params; result_typ; fun_body}, _)
-    -> "function"
-  | VarDec (s, {var_typ; var_init}, _)
-    -> "var"
+    -> sprintf "function %s(%s) = %s" s (fun_fields_to_string params) (exp_to_string fun_body)
+  | VarDec (s, {var_typ = Some(ty, _); var_init}, _)
+    -> sprintf "var %s: %s := %s" s ty (exp_to_string var_init)
+  | VarDec (s, {var_typ = None; var_init}, _)
+    -> sprintf "var %s := %s" s (exp_to_string var_init)
   | TypeDec ((s, _), ty, _)
-    -> "type"
+    -> sprintf "type %s = %s" s (type_to_string ty)
+
+and type_to_string =
+  function
+  | NameTy ((ty, _), _)
+    -> ty
+  | RecordTy (fs, _)
+    -> sprintf "{ %s }" (fun_fields_to_string fs)
+  | ArrayTy ((ty, _), _)
+    -> sprintf "array of %s" ty
 
 and var_to_string =
   function
