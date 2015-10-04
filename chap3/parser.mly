@@ -58,11 +58,11 @@
 
 %token EOF
 
-%left ASSIGN
-%left THEN
-%left ELSE
-%left DO
-%left OF
+%nonassoc ASSIGN
+%nonassoc THEN
+%nonassoc ELSE
+%nonassoc DO
+%nonassoc OF
 
 %nonassoc DIFF EQUAL
 %nonassoc LE GE LT GT
