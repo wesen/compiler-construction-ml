@@ -25,7 +25,7 @@ and for_exp = { for_var: symbol;
                 for_body: exp }
 and let_exp = { decs: dec list;
                 let_body: exp }
-and array_exp = { array_typ: symbol;
+and array_exp = { array_typ: type_id;
                   size: exp;
                   init: exp }
 and exp =

@@ -16,11 +16,11 @@ let parse_with_error lexbuf =
     fprintf stderr "%a: syntax error\n" print_position lexbuf;
     None
 
-let rec parse_and_print lexbuf =
+let parse_and_print lexbuf =
   match parse_with_error lexbuf with
-  | Some stm ->
-     parse_and_print lexbuf
-  | None -> ()
+  | Some exp ->
+     Tiger.exp_to_string exp
+  | None -> raise (Lexer.SyntaxError "syntax error")
 
 (*
 let loop filename () =
@@ -30,6 +30,14 @@ let loop filename () =
   parse_and_print lexbuf;
   In_channel.close inx
    *)
+
+let parse_file filename =
+  let inx = In_channel.create filename in
+  let lexbuf = Lexing.from_channel inx in
+  lexbuf.lex_curr_p <- { lexbuf.lex_curr_p with pos_fname = filename };
+  match parse_with_error lexbuf with
+  | Some v -> v
+  | None -> raise (Lexer.SyntaxError "syntax error")
 
 let parse_string s =
   let lexbuf = Lexing.from_string s in

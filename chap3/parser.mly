@@ -62,6 +62,7 @@
 %left THEN
 %left ELSE
 %left DO
+%left OF
 
 %nonassoc DIFF EQUAL
 %nonassoc LE GE LT GT
@@ -115,7 +116,14 @@ expr:
   | ty = type_id; LEFT_BRACE;
     fields = fields; RIGHT_BRACE {
                              RecordExp ({fields = fields; typ = ty; }, makepos $startpos $endpos)
-                            }
+                       }
+  | ty = type_id; LEFT_BRACK; e1 = expr; RIGHT_BRACK;
+    OF; e2 = expr {
+                 ArrayExp ({array_typ = ty;
+                            size = e1;
+                            init = e2},
+                           makepos $startpos $endpos)
+               }
 
   (* shift reduce conflict, one averted by %left ELSE *)
   | IF; test = expr; THEN; body = expr { IfExp ({if_test = test; then' = body; else' = None;}, makepos $startpos $endpos) }
