@@ -25,15 +25,6 @@ let parse_and_print lexbuf =
      Tiger.exp_to_string exp
   | None -> raise (Lexer.SyntaxError "syntax error")
 
-(*
-let loop filename () =
-  let inx = In_channel.create filename in
-  let lexbuf = Lexing.from_channel inx in
-  lexbuf.lex_curr_p <- { lexbuf.lex_curr_p with pos_fname = filename };
-  parse_and_print lexbuf;
-  In_channel.close inx
-   *)
-
 let lexbuf_from_file filename =
   let inx = In_channel.create filename in
   Lexing.from_channel inx
@@ -69,11 +60,3 @@ let lex_string s =
 let lex_file filename =
   let lexbuf = lexbuf_from_file filename in
   lex_all lexbuf
-
-(*
-let () =
-  Command.basic ~summary:"Parse and display Tiger"
-    Command.Spec.(empty +> anon ("filename" %: file))
-    loop
-  |> Command.run  (* ~version:"1.0" ~build_info:"FOO" *)
-*)

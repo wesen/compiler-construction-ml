@@ -1,0 +1,5 @@
+let
+	type  arrtype = int
+in
+	arr1
+end

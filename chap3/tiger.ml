@@ -1,5 +1,7 @@
 exception ParseError of string
 
+open Printf
+
 type pos = int * int
 type symbol = string
 
@@ -55,49 +57,87 @@ and fun_dec = { params: field list;
                 fun_body: exp }
 and dec =
     FunctionDec of (symbol * fun_dec * pos)
-  | VarDec of symbol * var_dec * pos
-  | TypeDec of ((symbol * pos) * ty * pos)
+  | VarDec      of symbol * var_dec * pos
+  | TypeDec     of ((symbol * pos) * ty * pos)
 and oper = PlusOp | MinusOp | TimesOp | DivideOp
          | EqOp | NeqOp | LtOp | LeOp | GtOp | GeOp
 and field = {
   field_name: symbol * pos;
   (* field_escape: bool ref; *)
   field_typ: symbol * pos }
-and ty = NameTy of type_id * pos
+and ty = NameTy   of type_id * pos
        | RecordTy of field list * pos
-       | ArrayTy of type_id * pos
+       | ArrayTy  of type_id * pos
 
 let rec exp_to_string =
-  let open Printf in
   function
-  | VarExp (v, _) -> var_to_string v
-  | NilExp _ -> "nil"
-  | IntExp (i, _) -> sprintf "%d" i
-  | StringExp (s, _) -> sprintf "\"%s\"" s
-  | CallExp ({func; args;}, _) ->
-    sprintf "(%s %s)" func (String.concat " " (List.map exp_to_string args))
-  | OpExp ({left; oper; right}, _) ->
-    sprintf "(%s) %s (%s)" (exp_to_string left) (op_to_string oper) (exp_to_string right)
+  | VarExp (v, _)
+    -> var_to_string v
+  | NilExp _
+    -> "nil"
+  | IntExp (i, _)
+    -> sprintf "%d" i
+  | StringExp (s, _)
+    -> sprintf "\"%s\"" s
+  | CallExp ({func; args;}, _)
+    -> sprintf "(%s %s)" func (String.concat " " (List.map exp_to_string args))
+  | OpExp ({left; oper; right}, _)
+    -> let parenthetize e =
+         let str = exp_to_string e in
+         match e with
+         | OpExp _ -> sprintf "(%s)" str
+         | _ -> str
+    in sprintf "%s %s %s" (parenthetize left) (op_to_string oper) (parenthetize right)
+  | RecordExp ({fields; typ}, _)
+    -> sprintf "%s { %s }" (fst typ) (fields_to_string fields)
+  | SeqExp exps
+    -> String.concat "; " (List.map exp_to_string exps)
+  | AssignExp ({var; exp}, _)
+    -> sprintf "%s := %s" (var_to_string var) (exp_to_string exp)
+  | BreakExp _
+    -> "break"
+  | IfExp ({if_test; then'; else'}, _)
+    -> (match else' with
+    | None -> sprintf "if %s then %s" (exp_to_string if_test) (exp_to_string then')
+    | Some e -> sprintf "if %s then %s else %s" (exp_to_string if_test) (exp_to_string then') (exp_to_string e)
+      )
+  | WhileExp ({while_test; while_body}, _)
+    -> sprintf "while %s do %s" (exp_to_string while_test) (exp_to_string while_body)
+  | ForExp ({for_var; lo; hi; for_body}, _)
+    -> sprintf "for %s := %s to %s do %s" for_var (exp_to_string lo) (exp_to_string hi) (exp_to_string for_body)
+  | LetExp ({decs; let_body}, _)
+    -> sprintf "let %s in %s end" (String.concat "\n" (List.map decl_to_string decs)) (exp_to_string let_body)
+  | ArrayExp ({array_typ; size; init}, _)
+    -> sprintf "array[%s] of %s" (exp_to_string size) (exp_to_string init)
 
-  | _ -> ""
+and fields_to_string fields =
+  String.concat ", " (List.map (fun (s, e, _) -> sprintf "%s = %s" s (exp_to_string e)) fields)
+
+and decl_to_string =
+  function
+  | FunctionDec (s, {params; result_typ; fun_body}, _)
+    -> "function"
+  | VarDec (s, {var_typ; var_init}, _)
+    -> "var"
+  | TypeDec ((s, _), ty, _)
+    -> "type"
 
 and var_to_string =
-  let open Printf in
   function
-  | SimpleVar s -> s
-  | FieldVar (v, s) -> sprintf "%s.%s" (var_to_string v) s
+  | SimpleVar s         -> s
+  | FieldVar (v, s)     -> sprintf "%s.%s" (var_to_string v) s
   | SubscriptVar (v, e) ->
     sprintf "%s[%s]" (var_to_string v) (exp_to_string e)
 
 and op_to_string =
   function
-  | PlusOp -> "+"
-  | MinusOp -> "-"
-  | TimesOp -> "*"
+  | PlusOp   -> "+"
+  | MinusOp  -> "-"
+  | TimesOp  -> "*"
   | DivideOp -> "/"
-  | EqOp -> "="
-  | NeqOp -> "<>"
-  | LtOp -> "<"
-  | GtOp -> ">"
-  | LeOp -> "<="
-  | GeOp -> ">="
+  | EqOp     -> "="
+  | NeqOp    -> "<>"
+  | LtOp     -> "<"
+  | GtOp     -> ">"
+  | LeOp     -> "<="
+  | GeOp     -> ">="

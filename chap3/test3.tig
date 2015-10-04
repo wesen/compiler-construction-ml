@@ -1,0 +1,5 @@
+let
+	var foo := 2
+in
+	arr1
+end
