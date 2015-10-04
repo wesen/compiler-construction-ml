@@ -10,10 +10,13 @@ let print_position outx lexbuf =
 let parse_with_error lexbuf =
   try Parser.prog Lexer.read lexbuf with
   | SyntaxError msg ->
-     fprintf stderr "%a: %s\n" print_position lexbuf msg;
+     fprintf stdout "%a: %s\n" print_position lexbuf msg;
+     None
+  | Tiger.ParseError msg ->
+     fprintf stdout "%a: %s\n" print_position lexbuf msg;
      None
   | Parser.Error ->
-    fprintf stderr "%a: syntax error\n" print_position lexbuf;
+    fprintf stdout "%a: syntax error\n" print_position lexbuf;
     None
 
 let parse_and_print lexbuf =

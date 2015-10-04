@@ -64,10 +64,11 @@
 %nonassoc DO
 %nonassoc OF
 
-%nonassoc DIFF EQUAL
-%nonassoc LE GE LT GT
 %left BOR
 %left BAND
+
+%nonassoc DIFF EQUAL
+%nonassoc LE GE LT GT
 %left PLUS MINUS
 %left STAR DIV
 %left UMINUS
@@ -114,6 +115,8 @@ expr:
                      args = args;}, makepos $startpos $endpos) }
 
   | LEFT_PAREN; es = exprs; RIGHT_PAREN { es }
+(*  | LEFT_PAREN; error; RIGHT_PAREN { Printf.fprintf stdout "hello\n";
+                                     NilExp (makepos $startpos $endpos) } *)
 
   | ty = symbol_with_pos; LEFT_BRACE;
     fields = fields; RIGHT_BRACE {
@@ -149,6 +152,8 @@ expr:
 
 brack_exp:
   | ty = symbol_with_pos; LEFT_BRACK; e1 = expr; RIGHT_BRACK { (ty, e1) }
+  | symbol_with_pos; LEFT_BRACK; RIGHT_BRACK { raise (ParseError "no bracket expr") }
+    (*  | symbol_with_pos; LEFT_BRACK; expr; error { raise (ParseError "missing closing bracket") } *)
     ;
 
 fields:
@@ -235,6 +240,7 @@ exprs:
   | e1 = expr; SEMICOLON; e2 = exprs { match e2 with
                                        | SeqExp es -> SeqExp (e1::es)
                                        | _ -> SeqExp [e1; e2]
-                                    }
+                                     }
+  (*  | error; SEMICOLON; es = exprs { Printf.fprintf stdout "error in seq"; es } *)
   | e = expr { e }
     ;
