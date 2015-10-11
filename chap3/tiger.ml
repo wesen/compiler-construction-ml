@@ -2,8 +2,8 @@ exception ParseError of string
 
 open Printf
 
-type pos = int * int
-type symbol = string
+type pos = int * int with sexp
+type symbol = string with sexp
 
 type var = SimpleVar    of symbol
          | FieldVar     of var * symbol
@@ -68,6 +68,7 @@ and field = {
 and ty = NameTy   of type_id * pos
        | RecordTy of field list * pos
        | ArrayTy  of type_id * pos
+with sexp
 
 let rec exp_to_string =
   function

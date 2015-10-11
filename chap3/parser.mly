@@ -91,6 +91,8 @@ expr:
                           | (l, s) -> VarExp (SimpleVar l, s) }
 
   (* shift reduce conflict, averted with %left ASSIGN *)
+  | l = symbol_with_pos; ASSIGN; e = expr { match l with
+                                            | (l, _) -> AssignExp ({var = SimpleVar l; exp = e;}, makepos $startpos $endpos) }
   | v = lvalue; ASSIGN; e = expr { AssignExp ({var = v; exp = e;}, makepos $startpos $endpos) }
 
   | MINUS; e = expr %prec UMINUS {
@@ -177,6 +179,7 @@ field:
   | DIV { DivideOp }
   ;
 
+    (* this really needs to be lists to have recursive definitions of types and functions *)
 decl:
   | VAR; s = SYMBOL; ASSIGN; e = expr { VarDec (s, { var_typ = None; var_init = e }, makepos $startpos $endpos ) }
 
