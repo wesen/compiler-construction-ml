@@ -1,9 +1,9 @@
-type symbol
+type t
 
-val symbol : string -> symbol
-val name : symbol -> string
+val symbol : string -> t
+val name : t -> string
 
 type 'a table
 val empty : 'a table
-val enter : 'a table * symbol * 'a -> 'a table
-val look : 'a table * symbol -> 'a option
+val enter : 'a table -> t -> 'a -> 'a table
+val look : 'a table -> t -> 'a option
