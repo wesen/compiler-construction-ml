@@ -142,3 +142,44 @@ module Make_interval(Endpoint : sig
     | Empty -> Empty
     | Interval (x, y) -> create x y
 end
+
+module type EXAMPLE =
+sig
+  type maybe
+  val plus : int * int -> int * int -> int * int
+  val minus : int * int -> int * int -> int * int
+end
+
+
+module Dbg_E:EXAMPLE =
+struct
+  type maybe = X | Y
+
+  let plus (x1,x2) (y1,y2) =
+    Printf.printf "%i %i\n%i %i\n" x1 x2 y1 y2;
+    (x1, y1)
+
+  let minus (x1,x2) (y1,y2) =
+    Printf.printf "%i %i\n%i %i\n" x1 x2 y1 y2;
+    (x2, y2)
+end
+
+module type F_TOR = functor (E: EXAMPLE) ->
+sig
+  val plus : int -> int -> int -> int -> int * int
+  val minus : int -> int -> int -> int -> int * int
+end
+
+module F_tor: F_TOR = functor (E:EXAMPLE) ->
+struct
+  let plus x y z m = E.plus (x,y) (z,m)
+  let minus x y z m = E.minus (x,y) (z,m)
+end
+
+module F = F_tor(struct
+    type maybe = A | B
+    let plus x y = (fst x, fst y)
+    let minus x y = (snd y, snd x)
+  end)
+
+module F' = F_tor(Dbg_E)
